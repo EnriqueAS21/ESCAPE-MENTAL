@@ -1,0 +1,1264 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Escape Mental</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Crimson+Text:ital,wght@0,400;0,600;1,400&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #07060F;
+    --deep: #0D0A1A;
+    --purple: #1E1035;
+    --purple2: #2E1A55;
+    --gold: #C9A84C;
+    --gold2: #F0D080;
+    --gold3: #FFF3B0;
+    --white: #EDE8F5;
+    --gray: #8878A8;
+    --teal: #1ABC9C;
+    --green: #2ECC71;
+    --red: #E74C3C;
+    --glow: rgba(201,168,76,0.15);
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--white);
+    font-family: 'Crimson Text', serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+    cursor: default;
+  }
+
+  /* STARFIELD */
+  #stars {
+    position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    overflow: hidden;
+  }
+  .star {
+    position: absolute;
+    background: var(--gold);
+    border-radius: 50%;
+    animation: twinkle var(--d) ease-in-out infinite alternate;
+    opacity: 0.3;
+  }
+  @keyframes twinkle { from { opacity:0.1; transform:scale(0.8); } to { opacity:0.7; transform:scale(1.2); } }
+
+  /* SCREENS */
+  .screen {
+    display: none;
+    position: relative;
+    z-index: 1;
+    min-height: 100vh;
+    padding: 2rem;
+    animation: fadeIn 0.6s ease;
+  }
+  .screen.active { display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+
+  /* ── PORTADA ── */
+  #screen-intro {
+    text-align: center;
+    gap: 1.5rem;
+  }
+  .flask-icon {
+    font-size: 5rem;
+    filter: drop-shadow(0 0 30px var(--gold));
+    animation: float 3s ease-in-out infinite;
+  }
+  @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
+
+  .game-title {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(2.5rem, 6vw, 4.5rem);
+    font-weight: 900;
+    color: var(--gold2);
+    letter-spacing: 0.15em;
+    text-shadow: 0 0 40px rgba(201,168,76,0.5), 0 0 80px rgba(201,168,76,0.2);
+    line-height: 1.1;
+  }
+  .game-subtitle {
+    font-family: 'Crimson Text', serif;
+    font-size: 1.2rem;
+    color: var(--gray);
+    font-style: italic;
+    letter-spacing: 0.05em;
+  }
+
+  /* ── BUTTONS ── */
+  .btn {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    padding: 0.85rem 2.2rem;
+    border: 1.5px solid var(--gold);
+    background: transparent;
+    color: var(--gold2);
+    font-family: 'Cinzel', serif;
+    font-size: 0.95rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    transition: all 0.25s;
+    clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+    position: relative;
+    overflow: hidden;
+  }
+  .btn::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: var(--gold);
+    transform: translateX(-100%);
+    transition: transform 0.25s;
+    z-index: -1;
+  }
+  .btn:hover::before { transform: translateX(0); }
+  .btn:hover { color: var(--bg); }
+  .btn-teal { border-color: var(--teal); color: var(--teal); }
+  .btn-teal::before { background: var(--teal); }
+  .btn-green { border-color: var(--green); color: var(--green); }
+  .btn-green::before { background: var(--green); }
+  .btn-red { border-color: var(--red); color: #ff9090; }
+  .btn-red::before { background: var(--red); }
+  .btn:hover.btn-teal, .btn:hover.btn-green, .btn:hover.btn-red { color: #fff; }
+
+  /* ── PANEL / CARD ── */
+  .panel {
+    background: linear-gradient(135deg, rgba(30,16,53,0.9), rgba(13,10,26,0.95));
+    border: 1px solid rgba(201,168,76,0.2);
+    padding: 2rem;
+    max-width: 860px;
+    width: 100%;
+    position: relative;
+  }
+  .panel::before, .panel::after {
+    content: '';
+    position: absolute;
+    width: 20px; height: 20px;
+    border-color: var(--gold);
+    border-style: solid;
+    opacity: 0.6;
+  }
+  .panel::before { top: -1px; left: -1px; border-width: 2px 0 0 2px; }
+  .panel::after  { bottom: -1px; right: -1px; border-width: 0 2px 2px 0; }
+
+  /* ── NARRATION BOX ── */
+  .narration {
+    border-left: 3px solid var(--gold);
+    padding: 1rem 1.5rem;
+    margin: 1.2rem 0;
+    background: rgba(201,168,76,0.05);
+    font-style: italic;
+    color: var(--gold3);
+    font-size: 1.05rem;
+    line-height: 1.7;
+    position: relative;
+  }
+  .narration::before {
+    content: '❝';
+    position: absolute; top: -0.3rem; left: 0.8rem;
+    font-size: 2rem; color: var(--gold); opacity: 0.4;
+    font-style: normal;
+  }
+
+  /* ── SALA HEADER ── */
+  .sala-header {
+    display: flex; align-items: center; gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(201,168,76,0.2);
+  }
+  .sala-badge {
+    font-family: 'Cinzel', serif;
+    font-size: 0.7rem;
+    color: var(--gold);
+    letter-spacing: 0.2em;
+    background: rgba(201,168,76,0.1);
+    border: 1px solid rgba(201,168,76,0.3);
+    padding: 0.3rem 0.8rem;
+    white-space: nowrap;
+  }
+  .sala-title {
+    font-family: 'Cinzel', serif;
+    font-size: 1.6rem;
+    color: var(--white);
+    font-weight: 700;
+  }
+
+  /* ── GUARDIAN ── */
+  .guardian-tag {
+    font-size: 0.9rem;
+    color: var(--teal);
+    font-style: italic;
+    margin-bottom: 0.5rem;
+  }
+
+  /* ── PROGRESS BAR ── */
+  .progress-wrap {
+    width: 100%; background: rgba(255,255,255,0.05);
+    height: 4px; margin-bottom: 1.5rem; position: relative;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--gold), var(--gold2));
+    transition: width 0.4s ease;
+    box-shadow: 0 0 8px var(--gold);
+  }
+  .progress-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--gray);
+    margin-bottom: 0.4rem;
+  }
+
+  /* ── QUESTION ── */
+  .question-text {
+    font-size: 1.2rem;
+    line-height: 1.7;
+    color: var(--white);
+    margin-bottom: 1.5rem;
+    font-weight: 600;
+  }
+
+  /* ── ANSWER OPTIONS ── */
+  .answers {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.8rem;
+    margin-bottom: 1.2rem;
+  }
+  .answer-btn {
+    background: rgba(46,26,85,0.5);
+    border: 1px solid rgba(136,120,168,0.3);
+    color: var(--white);
+    font-family: 'Crimson Text', serif;
+    font-size: 1rem;
+    padding: 0.9rem 1.1rem;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex; align-items: center; gap: 0.7rem;
+    position: relative; overflow: hidden;
+  }
+  .answer-btn .letter {
+    font-family: 'Cinzel', serif;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--gold);
+    min-width: 1.4rem;
+    text-align: center;
+  }
+  .answer-btn:hover:not(:disabled) {
+    border-color: var(--gold);
+    background: rgba(201,168,76,0.12);
+    transform: translateX(3px);
+  }
+  .answer-btn.correct {
+    border-color: var(--green);
+    background: rgba(46,204,113,0.12);
+    animation: pulse-green 0.4s ease;
+  }
+  .answer-btn.wrong {
+    border-color: var(--red);
+    background: rgba(231,76,60,0.12);
+    animation: shake 0.4s ease;
+  }
+  .answer-btn.reveal-correct {
+    border-color: var(--green);
+    background: rgba(46,204,113,0.08);
+    opacity: 0.7;
+  }
+  .answer-btn:disabled { cursor: default; }
+  @keyframes pulse-green { 0%,100%{transform:scale(1)} 50%{transform:scale(1.02)} }
+  @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }
+
+  /* ── FEEDBACK ── */
+  .feedback {
+    display: none;
+    padding: 0.9rem 1.2rem;
+    font-size: 1rem;
+    line-height: 1.5;
+    margin-top: 0.5rem;
+    border-radius: 2px;
+  }
+  .feedback.correct { background: rgba(46,204,113,0.1); border-left: 3px solid var(--green); color: #90f0b0; }
+  .feedback.wrong   { background: rgba(231,76,60,0.1);  border-left: 3px solid var(--red);   color: #f09090; }
+  .feedback.show    { display: block; animation: fadeIn 0.3s ease; }
+
+  /* ── HUD ── */
+  .hud {
+    display: flex; gap: 1.5rem; align-items: center;
+    margin-bottom: 1.5rem; flex-wrap: wrap;
+  }
+  .hud-item {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.85rem;
+    color: var(--gray);
+    display: flex; align-items: center; gap: 0.4rem;
+  }
+  .hud-value {
+    color: var(--gold2);
+    font-size: 1.1rem;
+    font-weight: bold;
+  }
+  .hud-value.up { color: var(--green); animation: bump 0.4s ease; }
+  .hud-value.down { color: var(--red); animation: bump 0.4s ease; }
+  @keyframes bump { 0%,100%{transform:scale(1)} 50%{transform:scale(1.25)} }
+
+  /* ── PISTA BOX ── */
+  .pista-box {
+    border: 1.5px solid var(--gold);
+    background: rgba(201,168,76,0.05);
+    padding: 1.2rem 1.5rem;
+    text-align: center;
+    margin: 1.2rem 0;
+  }
+  .pista-label {
+    font-family: 'Cinzel', serif;
+    font-size: 0.7rem;
+    letter-spacing: 0.3em;
+    color: var(--gold);
+    margin-bottom: 0.5rem;
+  }
+  .pista-value {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 1.4rem;
+    color: var(--gold3);
+    text-shadow: 0 0 20px rgba(201,168,76,0.4);
+  }
+
+  /* ── PISTAS COLLECTED ── */
+  .pistas-collected {
+    display: flex; gap: 0.5rem; flex-wrap: wrap;
+    margin-bottom: 0.8rem;
+  }
+  .pista-chip {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.8rem;
+    padding: 0.25rem 0.7rem;
+    border: 1px solid var(--gold);
+    color: var(--gold2);
+    background: rgba(201,168,76,0.08);
+  }
+  .pista-chip.missing {
+    border-color: rgba(136,120,168,0.3);
+    color: var(--gray);
+    background: transparent;
+  }
+
+  /* ── CÓDIGO FINAL ── */
+  .code-display {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: clamp(1rem, 3vw, 1.5rem);
+    color: var(--gold3);
+    text-align: center;
+    padding: 1.2rem;
+    border: 2px solid var(--gold);
+    background: rgba(201,168,76,0.04);
+    letter-spacing: 0.1em;
+    text-shadow: 0 0 20px rgba(201,168,76,0.3);
+    word-break: break-all;
+    margin: 1rem 0;
+  }
+  .code-part { display: inline-block; padding: 0 0.3rem; }
+  .code-part.hidden {
+    background: rgba(136,120,168,0.2);
+    border: 1px dashed var(--gray);
+    color: var(--gray);
+    min-width: 3rem; text-align: center;
+  }
+
+  /* ── SCORE FINAL ── */
+  .score-ring {
+    width: 140px; height: 140px;
+    border-radius: 50%;
+    border: 3px solid var(--gold);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    margin: 0 auto 1rem;
+    background: radial-gradient(circle, rgba(201,168,76,0.1), transparent);
+    box-shadow: 0 0 30px rgba(201,168,76,0.2);
+  }
+  .score-number {
+    font-family: 'Cinzel', serif;
+    font-size: 2.5rem;
+    color: var(--gold2);
+    font-weight: 900;
+  }
+  .score-label { font-size: 0.75rem; color: var(--gray); letter-spacing: 0.1em; }
+
+  /* ── TITLE SECTION ── */
+  .section-title {
+    font-family: 'Cinzel', serif;
+    font-size: 1.1rem;
+    color: var(--gold);
+    letter-spacing: 0.15em;
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+  }
+
+  /* ── REGLAS ── */
+  .rule-row {
+    display: flex; align-items: flex-start; gap: 0.8rem;
+    padding: 0.7rem 0;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    font-size: 1rem;
+    line-height: 1.5;
+  }
+  .rule-icon { font-size: 1.2rem; min-width: 1.5rem; text-align: center; }
+
+  /* STARS ANIMATION */
+  .star-burst {
+    position: fixed; pointer-events: none; z-index: 999;
+  }
+  .particle {
+    position: absolute;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--gold);
+    animation: explode var(--ed) ease-out forwards;
+  }
+  @keyframes explode {
+    0% { transform: translate(0,0) scale(1); opacity:1; }
+    100% { transform: translate(var(--ex), var(--ey)) scale(0); opacity:0; }
+  }
+
+  /* DIVIDER */
+  .divider {
+    width: 100%; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    margin: 1rem 0; opacity: 0.3;
+  }
+
+  /* SALA TRANSITION */
+  .sala-transition {
+    text-align: center; padding: 1rem 0;
+  }
+  .big-icon {
+    font-size: 4rem;
+    display: block; margin-bottom: 1rem;
+    animation: float 2s ease-in-out infinite;
+  }
+
+  /* TIMER HINT */
+  .timer-hint {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.8rem;
+    color: var(--gray);
+    font-style: italic;
+    margin-top: 0.5rem;
+    text-align: center;
+  }
+
+  /* ── DRAG & DROP ── */
+  .fragment {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 1rem;
+    padding: 0.55rem 1rem;
+    border: 1.5px solid var(--gold);
+    color: var(--gold3);
+    background: rgba(201,168,76,0.08);
+    cursor: grab;
+    user-select: none;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .fragment:hover { background: rgba(201,168,76,0.18); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(201,168,76,0.2); }
+  .fragment:active { cursor: grabbing; transform: scale(0.97); }
+  .fragment.dragging { opacity: 0.35; }
+  .fragment.unknown {
+    border-color: var(--gray);
+    color: var(--gray);
+    background: rgba(136,120,168,0.08);
+    cursor: default;
+    font-style: italic;
+  }
+
+  .code-slot {
+    min-height: 3.2rem;
+    border: 1.5px dashed rgba(136,120,168,0.4);
+    background: rgba(13,10,26,0.6);
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s;
+    position: relative;
+  }
+  .code-slot.drag-over {
+    border-color: var(--gold);
+    background: rgba(201,168,76,0.1);
+    box-shadow: 0 0 12px rgba(201,168,76,0.2);
+  }
+  .code-slot.filled { border-style: solid; border-color: rgba(201,168,76,0.5); }
+  .code-slot.correct-slot { border-color: var(--green); background: rgba(46,204,113,0.08); }
+  .code-slot.wrong-slot  { border-color: var(--red);   background: rgba(231,76,60,0.08); }
+  .slot-placeholder {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.8rem;
+    color: rgba(136,120,168,0.4);
+    pointer-events: none;
+  }
+
+  /* Responsive drag slots */
+  @media (max-width: 580px) {
+    #code-slots, #slot-labels { grid-template-columns: repeat(2,1fr); }
+  }
+
+  /* HIGHLIGHTED HINT */
+  .hint-box {
+    background: rgba(201,168,76,0.06);
+    border: 1px solid rgba(201,168,76,0.2);
+    padding: 0.7rem 1rem;
+    font-size: 0.9rem;
+    color: var(--gray);
+    margin-bottom: 0.8rem;
+    font-style: italic;
+  }
+
+
+
+  /* HIGHLIGHT BARS */
+  .diff-bar {
+    display: flex; gap: 0.3rem; align-items: center; margin-bottom: 0.5rem;
+  }
+  .diff-pip {
+    width: 20px; height: 6px;
+    background: var(--gold); border-radius: 2px;
+  }
+  .diff-pip.empty { background: rgba(136,120,168,0.2); }
+</style>
+</head>
+<body>
+
+<div id="stars"></div>
+
+<!-- ════════════════════════════════════
+     SCREEN: INTRO (Portada)
+════════════════════════════════════ -->
+<div id="screen-intro" class="screen active">
+  <div class="flask-icon">🧪</div>
+  <div class="game-title">ESCAPE MENTAL</div>
+  <div class="game-subtitle">Un juego de conocimiento, trabajo en equipo y escape dimensional</div>
+  <div style="display:flex;gap:1rem;margin-top:1rem;flex-wrap:wrap;justify-content:center;">
+    <button class="btn" onclick="showScreen('screen-historia')">▶ &nbsp;Comenzar</button>
+    <button class="btn btn-teal" onclick="showScreen('screen-reglas')">⚙ &nbsp;Reglas</button>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════
+     SCREEN: HISTORIA
+════════════════════════════════════ -->
+<div id="screen-historia" class="screen">
+  <div class="panel" style="max-width:720px;">
+    <div class="section-title">📖 La Historia</div>
+    <div class="narration">
+      El <strong style="color:var(--gold2)">Dr. Vortex</strong>, un científico obsesionado con el conocimiento absoluto, construyó una máquina capaz de atrapar mentes brillantes en un laboratorio atemporal entre dimensiones.
+    </div>
+    <p style="font-size:1.05rem;line-height:1.8;color:var(--white);margin-bottom:1rem;">
+      Un equipo de estudiantes de ingeniería quedó atrapado al quedarse tarde en su laboratorio universitario. Ahora deben demostrar que su conocimiento colectivo supera al del Dr. Vortex.
+    </p>
+    <p style="font-size:1.05rem;line-height:1.8;color:var(--white);">
+      Cada sala está custodiada por un <strong style="color:var(--teal)">guardián</strong>. Solo completándolas recolectarán los <strong style="color:var(--gold)">fragmentos del código maestro</strong> que apaga la máquina para siempre. Si fallan salas, llegarán al reto final con pistas incompletas...
+    </p>
+    <div class="divider"></div>
+    <div style="display:flex;gap:1rem;flex-wrap:wrap;">
+      <button class="btn btn-teal" onclick="showScreen('screen-reglas')">Ver Reglas →</button>
+      <button class="btn" onclick="startGame()">¡Entrar al Laboratorio!</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════
+     SCREEN: REGLAS
+════════════════════════════════════ -->
+<div id="screen-reglas" class="screen">
+  <div class="panel" style="max-width:720px;">
+    <div class="section-title">⚙ Reglas del Juego</div>
+    <div class="rule-row"><span class="rule-icon">👥</span><span>4 a 6 jugadores por equipo — voten juntos la respuesta</span></div>
+    <div class="rule-row"><span class="rule-icon">❓</span><span>5 preguntas por sala — necesitan <strong style="color:var(--gold)">3 o más correctas</strong> para completarla</span></div>
+    <div class="rule-row"><span class="rule-icon">✅</span><span>Respuesta correcta: <strong style="color:var(--green)">+10 puntos</strong></span></div>
+    <div class="rule-row"><span class="rule-icon">❌</span><span>Respuesta incorrecta: <strong style="color:var(--red)">-5 puntos</strong></span></div>
+    <div class="rule-row"><span class="rule-icon">🏅</span><span>Completar una sala: <strong style="color:var(--gold)">+20 puntos bonus</strong> y una pista del código</span></div>
+    <div class="rule-row"><span class="rule-icon">🔑</span><span>Al final, el código se forma con las pistas recolectadas — las que falten estarán ocultas y deberán deducirlas</span></div>
+    <div class="rule-row"><span class="rule-icon">🏁</span><span>Ingresen el código correcto para vencer al Dr. Vortex y escapar</span></div>
+    <div class="divider"></div>
+    <button class="btn" onclick="startGame()">¡Comenzar el Escape!</button>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════
+     SCREEN: SALA INTRO
+════════════════════════════════════ -->
+<div id="screen-sala-intro" class="screen">
+  <div class="panel sala-transition" style="max-width:720px;">
+    <span class="big-icon" id="sala-intro-icon">🔬</span>
+    <div class="sala-badge" id="sala-intro-badge">SALA 1</div>
+    <div class="sala-title" style="margin:0.5rem 0 0.3rem;" id="sala-intro-nombre">El Archivo del Tiempo</div>
+    <div class="guardian-tag" id="sala-intro-guardian">Guardián: El Cronista</div>
+    <div class="narration" id="sala-intro-narr"></div>
+    <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;margin-top:1rem;">
+      <div class="hud">
+        <div class="hud-item">🏆 Puntos: <span class="hud-value" id="intro-pts">0</span></div>
+        <div class="hud-item">🔑 Pistas: <span class="hud-value" id="intro-pistas">0/4</span></div>
+      </div>
+    </div>
+    <button class="btn" style="margin-top:1rem;" id="sala-intro-btn" onclick="startSala()">⚔ Entrar a la Sala</button>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════
+     SCREEN: PREGUNTA
+════════════════════════════════════ -->
+<div id="screen-pregunta" class="screen">
+  <div class="panel" style="max-width:780px;">
+    <div class="hud">
+      <div class="hud-item">🏆 <span id="q-pts" class="hud-value">0</span> pts</div>
+      <div class="hud-item">📍 Sala <span id="q-sala">1</span>/4</div>
+      <div class="hud-item">🔑 Pistas: <span id="q-pistas">0/4</span></div>
+    </div>
+    <div class="sala-header">
+      <div class="sala-badge" id="q-sala-badge">SALA 1</div>
+      <div class="sala-title" id="q-sala-nombre">El Archivo del Tiempo</div>
+    </div>
+    <div class="progress-label">Pregunta <span id="q-num">1</span> de 5</div>
+    <div class="progress-wrap"><div class="progress-fill" id="q-progress" style="width:20%"></div></div>
+    <div class="question-text" id="q-text"></div>
+    <div class="answers" id="q-answers"></div>
+    <div class="feedback" id="q-feedback"></div>
+    <div style="text-align:center;margin-top:1.2rem;" id="q-next-wrap" style="display:none;">
+      <button class="btn btn-teal" id="q-next-btn" onclick="nextQuestion()">Siguiente →</button>
+    </div>
+    <div class="timer-hint">⏱ Voten en equipo antes de seleccionar</div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════
+     SCREEN: SALA COMPLETADA (PISTA)
+════════════════════════════════════ -->
+<div id="screen-pista" class="screen">
+  <div class="panel" style="max-width:680px;text-align:center;">
+    <div style="font-size:3rem;margin-bottom:0.5rem;">🔑</div>
+    <div class="section-title" id="pista-sala-label">SALA 1 COMPLETADA</div>
+    <div class="narration" id="pista-narr"></div>
+    <div class="pista-box" id="pista-box">
+      <div class="pista-label">PISTA DESBLOQUEADA</div>
+      <div class="pista-value" id="pista-value"></div>
+    </div>
+    <div id="pista-failed-box" style="display:none;" class="pista-box" style="border-color:var(--red);">
+      <div class="pista-label" style="color:var(--red);">SALA FALLIDA — PISTA OCULTA</div>
+      <div class="pista-value" style="color:var(--gray);">??? — fragmento desconocido</div>
+    </div>
+    <div style="margin:1rem 0;">
+      <div class="hud" style="justify-content:center;">
+        <div class="hud-item">🏆 Puntos: <span class="hud-value" id="pista-pts">0</span></div>
+        <div class="hud-item" id="pista-correct-wrap">✅ Correctas: <span class="hud-value" id="pista-correct">0</span>/5</div>
+      </div>
+    </div>
+    <button class="btn" id="pista-next-btn" onclick="nextSala()">Continuar →</button>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════
+     SCREEN: RETO FINAL
+════════════════════════════════════ -->
+<div id="screen-final" class="screen">
+  <div class="panel" style="max-width:820px;">
+    <div class="sala-header" style="border-bottom-color:rgba(231,76,60,0.4);">
+      <div class="sala-badge" style="border-color:rgba(231,76,60,0.5);color:var(--red);">RETO FINAL</div>
+      <div class="sala-title">La Mente del Dr. Vortex</div>
+    </div>
+    <div class="narration" style="border-left-color:var(--red);color:#f5c0b0;">
+      "Han llegado lejos... más de lo que esperaba. Pero este es el fin. Mi máquina tiene un código de apagado. Combinen los fragmentos en el orden correcto para apagarla."<br><em>— Dr. Vortex</em>
+    </div>
+
+    <div class="section-title" style="margin-top:1.2rem;">🔑 Fragmentos disponibles — arrastra cada uno a su posición:</div>
+    <div id="fragments-tray" style="
+      display:flex; flex-wrap:wrap; gap:0.7rem;
+      min-height:3.2rem; padding:0.8rem;
+      border:1px dashed rgba(201,168,76,0.3);
+      background:rgba(46,26,85,0.2);
+      margin-bottom:1.2rem; border-radius:2px;
+      transition: background 0.2s;
+    "></div>
+
+    <div class="section-title">🔓 Código de la máquina — coloca los fragmentos en orden:</div>
+    <div id="code-slots" style="
+      display:grid; grid-template-columns:repeat(4,1fr);
+      gap:0.6rem; margin-bottom:0.8rem;
+    "></div>
+
+    <div id="slot-labels" style="
+      display:grid; grid-template-columns:repeat(4,1fr);
+      gap:0.6rem; margin-bottom:1rem; text-align:center;
+    ">
+      <div style="font-size:0.72rem;color:var(--gray);font-family:'Share Tech Mono',monospace;">PARTE I</div>
+      <div style="font-size:0.72rem;color:var(--gray);font-family:'Share Tech Mono',monospace;">PARTE II</div>
+      <div style="font-size:0.72rem;color:var(--gray);font-family:'Share Tech Mono',monospace;">PARTE III</div>
+      <div style="font-size:0.72rem;color:var(--gray);font-family:'Share Tech Mono',monospace;">PARTE IV</div>
+    </div>
+
+    <div id="code-feedback" style="display:none; padding:0.9rem 1.2rem; font-size:1rem; margin-bottom:1rem; border-radius:2px;"></div>
+
+    <p style="font-size:0.85rem;color:var(--gray);margin-bottom:1rem;" id="final-hint"></p>
+
+    <div style="display:flex;gap:1rem;flex-wrap:wrap;justify-content:center;">
+      <button class="btn btn-green" id="btn-verificar" onclick="verificarCodigo()" disabled>⚡ Verificar Código</button>
+      <button class="btn" onclick="resetSlots()" style="font-size:0.85rem;">↺ Reiniciar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════
+     SCREEN: VICTORIA
+════════════════════════════════════ -->
+<div id="screen-victoria" class="screen">
+  <div class="panel" style="max-width:680px;text-align:center;">
+    <div style="font-size:4rem;margin-bottom:0.5rem;filter:drop-shadow(0 0 20px var(--gold));">🏆</div>
+    <div class="game-title" style="font-size:2.5rem;color:var(--green);text-shadow:0 0 30px rgba(46,204,113,0.5);">¡ESCAPARON!</div>
+    <div class="narration" style="border-left-color:var(--green);color:#90f0b0;text-align:left;margin:1.5rem 0;">
+      "¡Imposible!" —el Dr. Vortex retrocede mientras la máquina emite alarmas—. "¡Nadie había aprendido tanto juntos!" La máquina se colapsa y los estudiantes son expulsados de vuelta a su universidad. En el suelo queda una nota: <em>'El conocimiento compartido siempre vencerá.'</em> — Dr. V.
+    </div>
+    <div class="score-ring">
+      <div class="score-number" id="v-score">0</div>
+      <div class="score-label">PUNTOS FINALES</div>
+    </div>
+    <div id="v-stats" style="margin:1rem 0;font-size:0.95rem;color:var(--gray);"></div>
+    <button class="btn" onclick="resetGame()" style="margin-top:1rem;">🔄 Jugar de nuevo</button>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════
+     SCREEN: DERROTA
+════════════════════════════════════ -->
+<div id="screen-derrota" class="screen">
+  <div class="panel" style="max-width:680px;text-align:center;">
+    <div style="font-size:4rem;margin-bottom:0.5rem;">💀</div>
+    <div class="game-title" style="font-size:2.5rem;color:var(--red);text-shadow:0 0 30px rgba(231,76,60,0.5);">GAME OVER</div>
+    <div class="narration" style="border-left-color:var(--red);color:#f0a0a0;text-align:left;margin:1.5rem 0;">
+      "Como esperaba..." —el Dr. Vortex extiende los brazos—. "El conocimiento fragmentado no es suficiente. Quedarán aquí, en mi colección de mentes brillantes que no fueron lo suficientemente brillantes." Las luces se apagan una por una...
+    </div>
+    <div class="score-ring" style="border-color:var(--red);">
+      <div class="score-number" style="color:#f09090;" id="d-score">0</div>
+      <div class="score-label">PUNTOS FINALES</div>
+    </div>
+    <div id="d-stats" style="margin:1rem 0;font-size:0.95rem;color:var(--gray);"></div>
+    <button class="btn btn-red" onclick="resetGame()" style="margin-top:1rem;">🔄 Intentarlo de nuevo</button>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════════
+// GAME DATA
+// ════════════════════════════════════════════
+const SALAS = [
+  {
+    num: 1, nombre: "El Archivo del Tiempo", icon: "📜",
+    guardian: "El Cronista — anciano que custodia los registros del tiempo",
+    narr_intro: "Para encontrar la salida, primero deben entender cómo llegaron aquí. El Dr. Vortex estudió a los grandes del pasado para robar su sabiduría. Si conocen la historia, quizás merezcan avanzar...",
+    narr_pista: "El Cronista sonríe y cierra lentamente su libro. 'Impresionante. Conocen el pasado. Entonces merecen saber lo que guardo: la primera parte del código es el nombre del dios que nombraste. No lo olviden.'",
+    narr_falla: "El Cronista niega con la cabeza. 'Insuficiente. El Dr. Vortex tenía razón en desconfiar de ustedes. La pista permanece oculta...' La sala se oscurece.",
+    pista: "KRONOS",
+    pista_desc: "KRONOS  —  Primera palabra del código maestro",
+    preguntas: [
+      { q: "El Dr. Vortex tomó el nombre de su máquina de un dios griego del tiempo. ¿Cuál era ese dios?", opts: ["Zeus","Ares","Kronos","Poseidón"], c: 2, fb_ok: "¡Correcto! Kronos era el dios titán del tiempo en la mitología griega.", fb_fail: "Incorrecto. La respuesta era Kronos — dios griego del tiempo, de quien toma nombre la máquina del Dr. Vortex." },
+      { q: "¿En qué año cayó el Imperio Romano de Occidente?", opts: ["1453 d.C.","476 d.C.","1066 d.C.","395 d.C."], c: 1, fb_ok: "¡Correcto! El Imperio Romano de Occidente cayó en el año 476 d.C.", fb_fail: "Incorrecto. La respuesta era 476 d.C., cuando Rómulo Augústulo fue destronado." },
+      { q: "¿Qué civilización construyó las pirámides de Giza?", opts: ["Mesopotamia","Griegos","Romanos","Egipcios"], c: 3, fb_ok: "¡Correcto! Los antiguos egipcios construyeron las pirámides de Giza.", fb_fail: "Incorrecto. Fueron los Egipcios — una de las civilizaciones más avanzadas de la antigüedad." },
+      { q: "¿Quién fue el primer ser humano en pisar la Luna?", opts: ["Yuri Gagarin","Buzz Aldrin","John Glenn","Neil Armstrong"], c: 3, fb_ok: "¡Correcto! Neil Armstrong fue el primero en pisar la Luna el 20 de julio de 1969.", fb_fail: "Incorrecto. Fue Neil Armstrong durante la misión Apollo 11 en 1969." },
+      { q: "¿Qué documento firmado en 1215 inspiró las democracias modernas?", opts: ["Declaración de Independencia","Magna Carta","Código de Hammurabi","Carta de la ONU"], c: 1, fb_ok: "¡Correcto! La Magna Carta de 1215 es uno de los primeros documentos constitucionales.", fb_fail: "Incorrecto. La respuesta es la Magna Carta, firmada en 1215 por el rey Juan I de Inglaterra." },
+    ]
+  },
+  {
+    num: 2, nombre: "El Reactor Vivo", icon: "⚗️",
+    guardian: "NEXUS — inteligencia artificial del reactor dimensional",
+    narr_intro: "Sistema de reconocimiento activado. Soy NEXUS, inteligencia artificial del reactor dimensional. El Dr. Vortex me programó para devorar el conocimiento de quienes fallen. Demuestren que entienden las leyes que gobiernan este universo... o los convertiré en datos.",
+    narr_pista: "NEXUS parpadea lentamente. 'Análisis completado. Conocimiento científico: verificado.' Un panel se desliza revelando un número grabado en metal. 'Ese año cambió el mundo. Guárdenlo bien.'",
+    narr_falla: "NEXUS emite un tono grave. 'Conocimiento insuficiente. Acceso denegado. El fragmento permanece cifrado.' Las pantallas se apagan una a una.",
+    pista: "1945",
+    pista_desc: "1945  —  Segundo fragmento del código maestro",
+    preguntas: [
+      { q: "El reactor fue activado el mismo año en que explotó la primera bomba atómica en la historia. ¿En qué año fue eso?", opts: ["1939","1942","1945","1950"], c: 2, fb_ok: "¡Correcto! La primera bomba atómica fue detonada en 1945, marcando el fin de la Segunda Guerra Mundial.", fb_fail: "Incorrecto. Fue en 1945, cuando EE.UU. detonó la primera bomba atómica." },
+      { q: "El reactor usa fisión nuclear. ¿Qué se divide para liberar la energía que lo mantiene activo?", opts: ["Electrón","Protón","Fotón","Núcleo atómico"], c: 3, fb_ok: "¡Correcto! En la fisión nuclear se divide el núcleo atómico liberando enormes cantidades de energía.", fb_fail: "Incorrecto. Es el núcleo atómico el que se divide en la fisión nuclear." },
+      { q: "¿Cuál es la fórmula química del agua, componente del sistema de enfriamiento del reactor?", opts: ["CO₂","NaCl","O₂","H₂O"], c: 3, fb_ok: "¡Correcto! H₂O: dos átomos de hidrógeno y uno de oxígeno.", fb_fail: "Incorrecto. La fórmula del agua es H₂O — dos hidrógenos y un oxígeno." },
+      { q: "El sistema usa nitrógeno a -196°C. ¿En qué estado se encuentra el nitrógeno a esa temperatura?", opts: ["Gaseoso","Sólido","Plasma","Líquido"], c: 3, fb_ok: "¡Correcto! A -196°C el nitrógeno se encuentra en estado líquido.", fb_fail: "Incorrecto. A -196°C el nitrógeno es líquido — punto de ebullición del nitrógeno." },
+      { q: "¿Cuál es la velocidad de la luz en el vacío, dato clave para calcular la frecuencia del portal dimensional?", opts: ["150,000 km/s","200,000 km/s","300,000 km/s","450,000 km/s"], c: 2, fb_ok: "¡Correcto! La velocidad de la luz es aproximadamente 300,000 km/s.", fb_fail: "Incorrecto. La luz viaja a ≈300,000 km/s en el vacío — constante fundamental del universo." },
+    ]
+  },
+  {
+    num: 3, nombre: "La Cámara Numérica", icon: "🔢",
+    guardian: "El Calculista — ser translúcido hecho de fórmulas matemáticas",
+    narr_intro: "¡Ah, visitantes orgánicos! El Dr. Vortex cifró estas compuertas con ecuaciones que considera irresolubles para mentes ordinarias. Demostraré que tenía razón... a menos que puedan sorprenderme. Cada cerradura tiene su lógica. Encuéntrenla.",
+    narr_pista: "El Calculista hace una pausa larga. 'Fascinante... resolvieron mis ecuaciones. No muchos llegan tan lejos.' Las paredes dejan de proyectar números y aparece un símbolo brillando en el suelo. 'Ese símbolo forma parte del código. Llévenselo.'",
+    narr_falla: "El Calculista niega con un gesto matemáticamente preciso. 'Como predecía mi algoritmo. El error humano es inevitable.' El símbolo se desvanece.",
+    pista: "Δ-7",
+    pista_desc: "Δ-7  —  Tercer fragmento del código maestro",
+    preguntas: [
+      { q: "La primera cerradura se abre con la solución positiva de: x² − 9 = 0. ¿Cuál es el valor de x?", opts: ["6","4","3","81"], c: 2, fb_ok: "¡Correcto! x² = 9, entonces x = 3 (solución positiva).", fb_fail: "Incorrecto. x² − 9 = 0 → x² = 9 → x = 3 (solución positiva)." },
+      { q: "Para desactivar la trampa necesitan calcular el 15% de 200. ¿Cuánto es?", opts: ["25","20","35","30"], c: 3, fb_ok: "¡Correcto! 200 × 0.15 = 30.", fb_fail: "Incorrecto. El 15% de 200 es 30 (200 × 0.15 = 30)." },
+      { q: "El ventilador se activa con el área de un círculo de radio 5. ¿Cuál es? (π ≈ 3.14)", opts: ["50 cm²","31.4 cm²","15π cm²","≈ 78.5 cm²"], c: 3, fb_ok: "¡Correcto! A = π × r² = 3.14 × 25 ≈ 78.5 cm².", fb_fail: "Incorrecto. A = π × r² = π × 5² ≈ 78.5 cm²." },
+      { q: "La secuencia del teclado es: 2, 6, 18, 54... ¿Cuál es el siguiente número?", opts: ["108","100","162","144"], c: 2, fb_ok: "¡Correcto! Cada número se multiplica por 3: 54 × 3 = 162.", fb_fail: "Incorrecto. La razón es ×3: 2→6→18→54→162." },
+      { q: "El ángulo que abre la última compuerta equivale al ángulo interior de un triángulo equilátero. ¿Cuántos grados mide?", opts: ["90°","45°","30°","60°"], c: 3, fb_ok: "¡Correcto! En un triángulo equilátero cada ángulo mide 60°.", fb_fail: "Incorrecto. Los ángulos de un triángulo equilátero son todos de 60° (180° ÷ 3)." },
+    ]
+  },
+  {
+    num: 4, nombre: "El Nexo Digital", icon: "💻",
+    guardian: "Glitch — virus con personalidad caótica",
+    narr_intro: "¡Jeje... hola visitantes de carne! Soy el virus que controla el núcleo de la máquina dimensional. El Dr. Vortex me creó para destruir a quien llegara hasta aquí. Si logran hackearme antes de que yo los hackee a ustedes... quizás les deje pasar. ¿Listos para la batalla digital?",
+    narr_pista: "Glitch tartamudea y sus píxeles se dispersan. '¡No puede ser... me hackearon a MÍ!' Las pantallas muestran un error fatal y en el caos aparece un código. 'Ese era mi último secreto. Tómenlo... lo merecen.'",
+    narr_falla: "Glitch ríe distorsionado. 'Jeje... virus 1, humanos 0. El código permanece cifrado entre mis procesos corrompidos.' Las pantallas muestran solo estática.",
+    pista: "X-404",
+    pista_desc: "X-404  —  Cuarto y último fragmento del código maestro",
+    preguntas: [
+      { q: "Para hackear el primer nodo: ¿Qué significa 'IP' en el contexto de redes informáticas?", opts: ["Internal Program","Internet Protocol","Integrated Process","Input Port"], c: 1, fb_ok: "¡Correcto! IP significa Internet Protocol — protocolo base de comunicación en redes.", fb_fail: "Incorrecto. IP es Internet Protocol — el protocolo fundamental de las redes modernas." },
+      { q: "El firewall usa código binario. ¿Cuánto vale el número binario 1010 en decimal?", opts: ["8","12","10","16"], c: 2, fb_ok: "¡Correcto! 1010 en binario = 1×8 + 0×4 + 1×2 + 0×1 = 10.", fb_fail: "Incorrecto. 1010₂ = 10₁₀ (8+0+2+0 = 10)." },
+      { q: "El Dr. Vortex usó cifrado simétrico para proteger sus archivos. ¿Cuál de estos ES un algoritmo de cifrado simétrico?", opts: ["RSA","SHA-256","AES","MD5"], c: 2, fb_ok: "¡Correcto! AES (Advanced Encryption Standard) es el estándar de cifrado simétrico más usado.", fb_fail: "Incorrecto. AES es cifrado simétrico — RSA es asimétrico; SHA-256 y MD5 son funciones hash." },
+      { q: "¿Qué es el kernel de un sistema operativo, componente central de la máquina dimensional?", opts: ["Un antivirus","Un lenguaje de programación","Una interfaz gráfica","El núcleo del sistema operativo"], c: 3, fb_ok: "¡Correcto! El kernel es el núcleo del SO que gestiona hardware y procesos.", fb_fail: "Incorrecto. El kernel es el núcleo del sistema operativo — gestiona hardware, memoria y procesos." },
+      { q: "En el sistema hexadecimal, ¿qué letra representa el valor decimal 10?", opts: ["B","X","A","F"], c: 2, fb_ok: "¡Correcto! En hexadecimal: A=10, B=11, C=12, D=13, E=14, F=15.", fb_fail: "Incorrecto. En hexadecimal la letra A representa el valor decimal 10." },
+    ]
+  }
+];
+
+const CODE_PARTS = ["KRONOS","1945","Δ-7","X-404"];
+
+// ════════════════════════════════════════════
+// GAME STATE
+// ════════════════════════════════════════════
+let state = {};
+
+function initState() {
+  state = {
+    pts: 0,
+    sala: 0,        // current sala index
+    pregunta: 0,    // current question index
+    correctas: 0,   // correct in current sala
+    pistas: [],     // array of true/false per sala completed
+    totalCorrect: 0,
+    totalWrong: 0,
+  };
+}
+
+// ════════════════════════════════════════════
+// NAVIGATION
+// ════════════════════════════════════════════
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+function startGame() {
+  initState();
+  loadSalaIntro();
+}
+
+function loadSalaIntro() {
+  const sala = SALAS[state.sala];
+  document.getElementById('sala-intro-icon').textContent = sala.icon;
+  document.getElementById('sala-intro-badge').textContent = `SALA ${sala.num}`;
+  document.getElementById('sala-intro-nombre').textContent = sala.nombre;
+  document.getElementById('sala-intro-guardian').textContent = `Guardián: ${sala.guardian}`;
+  document.getElementById('sala-intro-narr').textContent = sala.narr_intro;
+  document.getElementById('intro-pts').textContent = state.pts;
+  document.getElementById('intro-pistas').textContent = `${state.pistas.filter(Boolean).length}/4`;
+  showScreen('screen-sala-intro');
+}
+
+function startSala() {
+  state.pregunta = 0;
+  state.correctas = 0;
+  loadPregunta();
+}
+
+function loadPregunta() {
+  const sala = SALAS[state.sala];
+  const pq = sala.preguntas[state.pregunta];
+  const num = state.pregunta + 1;
+
+  document.getElementById('q-pts').textContent = state.pts;
+  document.getElementById('q-sala').textContent = sala.num;
+  document.getElementById('q-pistas').textContent = `${state.pistas.filter(Boolean).length}/4`;
+  document.getElementById('q-sala-badge').textContent = `SALA ${sala.num}`;
+  document.getElementById('q-sala-nombre').textContent = sala.nombre;
+  document.getElementById('q-num').textContent = num;
+  document.getElementById('q-progress').style.width = (num/5*100) + '%';
+  document.getElementById('q-text').textContent = pq.q;
+
+  const answersEl = document.getElementById('q-answers');
+  answersEl.innerHTML = '';
+  const letters = ['A','B','C','D'];
+  pq.opts.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'answer-btn';
+    btn.innerHTML = `<span class="letter">${letters[i]}</span>${opt}`;
+    btn.onclick = () => selectAnswer(i);
+    answersEl.appendChild(btn);
+  });
+
+  document.getElementById('q-feedback').className = 'feedback';
+  document.getElementById('q-feedback').textContent = '';
+  document.getElementById('q-next-wrap').style.display = 'none';
+
+  showScreen('screen-pregunta');
+}
+
+function selectAnswer(idx) {
+  const sala = SALAS[state.sala];
+  const pq = sala.preguntas[state.pregunta];
+  const btns = document.querySelectorAll('.answer-btn');
+  btns.forEach(b => b.disabled = true);
+
+  const fb = document.getElementById('q-feedback');
+  if (idx === pq.c) {
+    state.pts += 10;
+    state.correctas++;
+    state.totalCorrect++;
+    btns[idx].classList.add('correct');
+    fb.className = 'feedback correct show';
+    fb.textContent = '✅  ' + pq.fb_ok;
+    animatePts('q-pts', state.pts, true);
+    burst(btns[idx]);
+  } else {
+    state.pts = Math.max(0, state.pts - 5);
+    state.totalWrong++;
+    btns[idx].classList.add('wrong');
+    btns[pq.c].classList.add('reveal-correct');
+    fb.className = 'feedback wrong show';
+    fb.textContent = '❌  ' + pq.fb_fail;
+    animatePts('q-pts', state.pts, false);
+  }
+  document.getElementById('q-next-wrap').style.display = 'block';
+}
+
+function nextQuestion() {
+  state.pregunta++;
+  if (state.pregunta < 5) {
+    loadPregunta();
+  } else {
+    loadPistaScreen();
+  }
+}
+
+function loadPistaScreen() {
+  const sala = SALAS[state.sala];
+  const passed = state.correctas >= 3;
+  state.pistas.push(passed);
+
+  if (passed) state.pts += 20;
+
+  document.getElementById('pista-sala-label').textContent = `SALA ${sala.num} ${passed ? 'COMPLETADA' : 'FALLIDA'}`;
+  document.getElementById('pista-narr').textContent = passed ? sala.narr_pista : sala.narr_falla;
+  document.getElementById('pista-pts').textContent = state.pts;
+  document.getElementById('pista-correct').textContent = state.correctas;
+
+  const pistaBox = document.getElementById('pista-box');
+  const failBox = document.getElementById('pista-failed-box');
+  if (passed) {
+    pistaBox.style.display = 'block';
+    failBox.style.display = 'none';
+    document.getElementById('pista-value').textContent = sala.pista_desc;
+  } else {
+    pistaBox.style.display = 'none';
+    failBox.style.display = 'block';
+  }
+
+  const isLast = state.sala === 3;
+  document.getElementById('pista-next-btn').textContent = isLast ? '⚔ Ir al Reto Final →' : 'Continuar a la siguiente sala →';
+
+  showScreen('screen-pista');
+}
+
+function nextSala() {
+  state.sala++;
+  if (state.sala < 4) {
+    loadSalaIntro();
+  } else {
+    loadFinalScreen();
+  }
+}
+
+function loadFinalScreen() {
+  // Build hint
+  const missing = state.pistas.filter(p => !p).length;
+  const hintEl = document.getElementById('final-hint');
+  if (missing === 0) {
+    hintEl.innerHTML = '✅ Tienen <strong style="color:var(--green)">todas las pistas</strong>. Arrastren los fragmentos en el orden correcto.';
+  } else if (missing === 1) {
+    hintEl.innerHTML = `⚠️ Falta <strong style="color:var(--gold)">1 fragmento</strong>. El fragmento desconocido aparece bloqueado — intenten deducir su posición.`;
+  } else {
+    hintEl.innerHTML = `⚠️ Faltan <strong style="color:var(--red)">${missing} fragmentos</strong>. Los fragmentos bloqueados deben ubicarse por lógica o quedarán vacíos.`;
+  }
+
+  buildDragDrop();
+  showScreen('screen-final');
+}
+
+// ── DRAG & DROP STATE ──
+let dragSrc = null;      // the element being dragged
+let dragFrom = null;     // 'tray' | 'slot-N'
+let slotContents = [null, null, null, null]; // what's in each slot
+
+function buildDragDrop() {
+  slotContents = [null, null, null, null];
+
+  // Build fragments tray — shuffled, only known pistas
+  const tray = document.getElementById('fragments-tray');
+  tray.innerHTML = '';
+
+  // Create fragment elements for known pistas, shuffled
+  const available = [];
+  state.pistas.forEach((got, i) => {
+    if (got) available.push({ key: CODE_PARTS[i], idx: i });
+  });
+  // Shuffle
+  available.sort(() => Math.random() - 0.5);
+
+  available.forEach(({ key, idx }) => {
+    const el = createFragment(key, idx);
+    tray.appendChild(el);
+  });
+
+  // Tray drop zone
+  tray.ondragover = e => { e.preventDefault(); tray.style.background = 'rgba(201,168,76,0.08)'; };
+  tray.ondragleave = () => { tray.style.background = 'rgba(46,26,85,0.2)'; };
+  tray.ondrop = e => {
+    e.preventDefault();
+    tray.style.background = 'rgba(46,26,85,0.2)';
+    if (!dragSrc) return;
+    // If coming from a slot, free that slot
+    if (dragFrom !== null && dragFrom !== 'tray') {
+      const slotIdx = parseInt(dragFrom);
+      slotContents[slotIdx] = null;
+      renderSlot(slotIdx, null);
+    }
+    dragSrc.classList.remove('dragging');
+    tray.appendChild(dragSrc);
+    dragSrc = null; dragFrom = null;
+    updateVerifyBtn();
+  };
+
+  // Build slots
+  const slotsEl = document.getElementById('code-slots');
+  slotsEl.innerHTML = '';
+  for (let i = 0; i < 4; i++) {
+    const slot = document.createElement('div');
+    slot.className = 'code-slot';
+    slot.id = `slot-${i}`;
+    slot.innerHTML = `<span class="slot-placeholder">Soltar aquí</span>`;
+    slot.ondragover = e => { e.preventDefault(); slot.classList.add('drag-over'); };
+    slot.ondragleave = () => slot.classList.remove('drag-over');
+    slot.ondrop = e => {
+      e.preventDefault();
+      slot.classList.remove('drag-over');
+      if (!dragSrc) return;
+      const slotIdx = i;
+
+      // If slot already has something, send it back to tray
+      if (slotContents[slotIdx] !== null) {
+        const existing = slot.querySelector('.fragment');
+        if (existing) {
+          existing.classList.remove('dragging');
+          document.getElementById('fragments-tray').appendChild(existing);
+        }
+      }
+      // If coming from another slot, free it
+      if (dragFrom !== null && dragFrom !== 'tray') {
+        const fromIdx = parseInt(dragFrom);
+        slotContents[fromIdx] = null;
+        renderSlot(fromIdx, null);
+      }
+
+      slotContents[slotIdx] = dragSrc.dataset.key;
+      dragSrc.classList.remove('dragging');
+      slot.innerHTML = '';
+      slot.appendChild(dragSrc);
+      slot.classList.add('filled');
+      dragSrc = null; dragFrom = null;
+      updateVerifyBtn();
+    };
+    slotsEl.appendChild(slot);
+  }
+
+  document.getElementById('code-feedback').style.display = 'none';
+  document.getElementById('btn-verificar').disabled = true;
+}
+
+function createFragment(key, idx) {
+  const el = document.createElement('div');
+  el.className = 'fragment';
+  el.textContent = key;
+  el.dataset.key = key;
+  el.dataset.idx = idx;
+  el.draggable = true;
+  el.ondragstart = e => {
+    dragSrc = el;
+    // Determine where it came from
+    if (el.parentElement.id === 'fragments-tray') {
+      dragFrom = 'tray';
+    } else {
+      // Find which slot
+      for (let i = 0; i < 4; i++) {
+        if (el.parentElement.id === `slot-${i}`) { dragFrom = String(i); break; }
+      }
+    }
+    setTimeout(() => el.classList.add('dragging'), 0);
+  };
+  el.ondragend = () => { el.classList.remove('dragging'); };
+  return el;
+}
+
+function renderSlot(idx, content) {
+  const slot = document.getElementById(`slot-${idx}`);
+  if (!content) {
+    slot.innerHTML = `<span class="slot-placeholder">Soltar aquí</span>`;
+    slot.classList.remove('filled', 'correct-slot', 'wrong-slot');
+  }
+}
+
+function updateVerifyBtn() {
+  // Enable verify only when all known pistas are placed (slots with known count filled)
+  const known = state.pistas.filter(Boolean).length;
+  const placed = slotContents.filter(s => s !== null).length;
+  document.getElementById('btn-verificar').disabled = placed < known;
+}
+
+function resetSlots() {
+  buildDragDrop();
+}
+
+function verificarCodigo() {
+  const fb = document.getElementById('code-feedback');
+  let allCorrect = true;
+  let anyWrong = false;
+
+  for (let i = 0; i < 4; i++) {
+    const slot = document.getElementById(`slot-${i}`);
+    slot.classList.remove('correct-slot', 'wrong-slot');
+    if (slotContents[i] !== null) {
+      if (slotContents[i] === CODE_PARTS[i]) {
+        slot.classList.add('correct-slot');
+      } else {
+        slot.classList.add('wrong-slot');
+        allCorrect = false;
+        anyWrong = true;
+      }
+    } else if (state.pistas[i]) {
+      // Known pista not placed
+      allCorrect = false;
+    }
+  }
+
+  // Check if all 4 positions with known pistas are correct
+  const correctlyPlaced = slotContents.filter((s, i) => s === CODE_PARTS[i]).length;
+  const knownCount = state.pistas.filter(Boolean).length;
+
+  fb.style.display = 'block';
+
+  if (correctlyPlaced === 4) {
+    // Perfect — all 4 correct
+    fb.style.cssText = 'display:block;padding:0.9rem 1.2rem;font-size:1rem;margin-bottom:1rem;background:rgba(46,204,113,0.1);border-left:3px solid var(--green);color:#90f0b0;';
+    fb.textContent = '✅ ¡Código correcto! La máquina emite un pitido y las puertas se abren...';
+    setTimeout(() => victory(), 1800);
+  } else if (correctlyPlaced === knownCount && knownCount < 4) {
+    // All known pistas placed correctly but missing some
+    fb.style.cssText = 'display:block;padding:0.9rem 1.2rem;font-size:1rem;margin-bottom:1rem;background:rgba(201,168,76,0.1);border-left:3px solid var(--gold);color:var(--gold2);';
+    fb.textContent = `✅ Los fragmentos conocidos están en orden correcto, pero faltan ${4 - knownCount} piezas. El código queda incompleto...`;
+    setTimeout(() => defeat(), 2200);
+  } else {
+    fb.style.cssText = 'display:block;padding:0.9rem 1.2rem;font-size:1rem;margin-bottom:1rem;background:rgba(231,76,60,0.1);border-left:3px solid var(--red);color:#f09090;';
+    fb.textContent = `❌ Combinación incorrecta. ${correctlyPlaced} de ${knownCount} fragmentos en posición correcta. Los slots en rojo están mal ubicados.`;
+  }
+}
+
+function victory() {
+  document.getElementById('v-score').textContent = state.pts;
+  const pistas = state.pistas.filter(Boolean).length;
+  document.getElementById('v-stats').innerHTML =
+    `🔑 Pistas recolectadas: <strong style="color:var(--gold)">${pistas}/4</strong> &nbsp;|&nbsp; ✅ Correctas: <strong style="color:var(--green)">${state.totalCorrect}</strong> &nbsp;|&nbsp; ❌ Incorrectas: <strong style="color:var(--red)">${state.totalWrong}</strong>`;
+  showScreen('screen-victoria');
+  confetti();
+}
+
+function defeat() {
+  document.getElementById('d-score').textContent = state.pts;
+  const pistas = state.pistas.filter(Boolean).length;
+  document.getElementById('d-stats').innerHTML =
+    `🔑 Pistas recolectadas: <strong style="color:var(--gold)">${pistas}/4</strong> &nbsp;|&nbsp; ✅ Correctas: <strong style="color:var(--green)">${state.totalCorrect}</strong> &nbsp;|&nbsp; ❌ Incorrectas: <strong style="color:var(--red)">${state.totalWrong}</strong>`;
+  showScreen('screen-derrota');
+}
+
+function resetGame() {
+  initState();
+  showScreen('screen-intro');
+}
+
+// ════════════════════════════════════════════
+// ANIMATIONS
+// ════════════════════════════════════════════
+function animatePts(elId, newVal, up) {
+  const el = document.getElementById(elId);
+  el.textContent = newVal;
+  el.className = 'hud-value ' + (up ? 'up' : 'down');
+  setTimeout(() => el.className = 'hud-value', 500);
+}
+
+function burst(el) {
+  const rect = el.getBoundingClientRect();
+  const cx = rect.left + rect.width/2;
+  const cy = rect.top + rect.height/2;
+  const div = document.createElement('div');
+  div.className = 'star-burst';
+  div.style.cssText = `left:${cx}px;top:${cy}px;`;
+  for (let i = 0; i < 10; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    const angle = (i/10)*Math.PI*2;
+    const dist = 40+Math.random()*30;
+    p.style.cssText = `--ex:${Math.cos(angle)*dist}px;--ey:${Math.sin(angle)*dist}px;--ed:${0.5+Math.random()*0.3}s;background:${Math.random()>0.5?'#C9A84C':'#2ECC71'}`;
+    div.appendChild(p);
+  }
+  document.body.appendChild(div);
+  setTimeout(() => div.remove(), 900);
+}
+
+function confetti() {
+  for (let i = 0; i < 5; i++) {
+    setTimeout(() => {
+      const fake = document.createElement('div');
+      fake.style.cssText = `position:fixed;top:50%;left:50%;z-index:999;pointer-events:none`;
+      for (let j = 0; j < 20; j++) {
+        const p = document.createElement('div');
+        p.className = 'particle';
+        const angle = Math.random()*Math.PI*2;
+        const dist = 60+Math.random()*100;
+        const colors = ['#C9A84C','#2ECC71','#F0D080','#1ABC9C','#FFF3B0'];
+        p.style.cssText = `--ex:${Math.cos(angle)*dist}px;--ey:${Math.sin(angle)*dist}px;--ed:${0.8+Math.random()*0.6}s;background:${colors[Math.floor(Math.random()*colors.length)]};width:8px;height:8px;`;
+        fake.appendChild(p);
+      }
+      document.body.appendChild(fake);
+      setTimeout(() => fake.remove(), 1500);
+    }, i * 200);
+  }
+}
+
+// ════════════════════════════════════════════
+// STARS
+// ════════════════════════════════════════════
+function generateStars() {
+  const container = document.getElementById('stars');
+  for (let i = 0; i < 60; i++) {
+    const star = document.createElement('div');
+    star.className = 'star';
+    const size = 1 + Math.random() * 2.5;
+    star.style.cssText = `
+      width:${size}px;height:${size}px;
+      left:${Math.random()*100}%;top:${Math.random()*100}%;
+      --d:${2+Math.random()*4}s;
+      animation-delay:${Math.random()*4}s;
+    `;
+    container.appendChild(star);
+  }
+}
+
+generateStars();
+initState();
+</script>
+</body>
+</html>
